@@ -1,0 +1,188 @@
+// styles.scss
+.barcode-scanner {
+  width: 100%;
+  position: relative;
+  
+  .scanner-container {
+    position: relative;
+    width: 100%;
+    // Reduced height to match your design
+    height: 200px;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 40px; // Add space below for the controls
+    
+    .scanner {
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      position: relative;
+      
+      // Styles for the HTML5QrCode elements
+      video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+      }
+      
+      // Override library's default styles
+      div {
+        padding: 0 !important;
+      }
+      
+      img {
+        display: none !important; // Hide QR icon from library
+      }
+      
+      .scanner-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        pointer-events: none; // Allow clicks to pass through to scanner
+        
+        .scanner-overlay-inner {
+          width: 250px;
+          height: 50px; // Make the scanning area a horizontal rectangle like in your design
+          position: relative;
+          
+          // Create the bracket design like shown in the image
+          &:before, &:after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 100%;
+            border-top: 2px solid white;
+            border-bottom: 2px solid white;
+          }
+          
+          &:before {
+            left: 0;
+            border-left: 2px solid white;
+          }
+          
+          &:after {
+            right: 0;
+            border-right: 2px solid white;
+          }
+          
+          // Scanning animation
+          &:before {
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+          }
+          
+          &:after {
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+          }
+        }
+      }
+    }
+    
+    .controls {
+      position: absolute;
+      bottom: -40px; // Position controls below the scanner
+      left: 0;
+      width: 100%;
+      text-align: center;
+      
+      .loading-message, .error-message {
+        padding: 8px;
+        margin-bottom: 10px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        border-radius: 4px;
+      }
+      
+      .error-message {
+        color: #ff4d4f;
+      }
+      
+      .cancel-button {
+        padding: 8px 20px;
+        background-color: #f44336;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        
+        &:hover {
+          background-color: #d32f2f;
+        }
+        
+        &:active {
+          transform: translateY(1px);
+        }
+      }
+    }
+  }
+}
+
+@keyframes scan {
+  0% {
+    left: 0;
+    background-position: 0% 0%;
+  }
+  50% {
+    left: calc(100% - 20px);
+    background-position: 100% 0%;
+  }
+  100% {
+    left: 0;
+    background-position: 0% 0%;
+  }
+}
+
+// Additional styles for the parent component
+.barcode-scan-section {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 16px;
+  
+  .scan-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 16px;
+    cursor: pointer;
+    
+    &:hover {
+      background-color: #1976D2;
+    }
+    
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+  
+  .result {
+    margin-top: 20px;
+    padding: 16px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    
+    h2 {
+      font-size: 18px;
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+    
+    p {
+      font-size: 16px;
+      word-break: break-all;
+    }
+  }
+}
