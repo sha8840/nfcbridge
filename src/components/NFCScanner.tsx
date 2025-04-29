@@ -16,6 +16,13 @@ const NFCScanner: React.FC = () => {
   const [barcodeActive, setBarcodeActive] = useState<boolean>(false);
   const [barcodeData, setBarcodeData] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(0);
+  const [oldSessionId, setOldSessionId] = useState<string | null>(null);
+
+
+  useEffect(() => {
+    setSessionId(localStorage.getItem("sessionId") || "");
+    setOldSessionId(localStorage.getItem("sessionId") || "");
+  }, [sessionId, oldSessionId]);
 
   useEffect(() => {
     const oldSessionId = localStorage.getItem("sessionId");
@@ -27,7 +34,7 @@ const NFCScanner: React.FC = () => {
       setSessionId(newSessionId);
       localStorage.setItem("sessionId", newSessionId);
     }
-  }, []);
+  }, [sessionId]);
 
   useEffect(() => {
     const checkUrlParams = () => {
@@ -138,6 +145,7 @@ const NFCScanner: React.FC = () => {
       {sessionId && (
         <div className="mt-6 text-xs text-gray-400 text-center">
           <p>Session ID: {sessionId.substring(0, 8)}...</p>
+          <p>OldSessionID: {oldSessionId?.substring(0,8)}</p>
         </div>
       )}
     </div>
