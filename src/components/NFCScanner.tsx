@@ -365,18 +365,13 @@ const NFCScanner: React.FC = () => {
       )}
       <div
         style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
+          marginTop: 20,
           maxHeight: 160,
           overflowY: "auto",
           background: "rgba(0,0,0,0.8)",
           color: "#0f0",
           fontFamily: "monospace",
           fontSize: 12,
-          padding: 8,
-          zIndex: 9999,
         }}
       >
         {logs.map((line, i) => (
