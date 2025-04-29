@@ -19,6 +19,7 @@ const NFCScanner: React.FC = () => {
 
   useEffect(() => {
     const oldSessionId = localStorage.getItem("sessionId");
+    console.log(localStorage.getItem("sessionId"));
     if (oldSessionId) {
       setSessionId(oldSessionId);
     } else {
@@ -68,7 +69,7 @@ const NFCScanner: React.FC = () => {
       setTimeout(() => {
         Modal.success({
           title: "Validation Successful",
-        })
+        });
         setCurrentStep(4);
       }, 2000);
     }
