@@ -284,9 +284,9 @@ const NFCScanner: React.FC = () => {
   };
 
   const handleBarcode = (results: any) => {
+    addLog(`📥 Barcode data: ${results}`);
     if (results && currentStep === 1) {
       setBarcodeData(results);
-      addLog(`📥 Barcode data: ${results}`);
       setCurrentStep(2);
       setStatus("success");
       setTimeout(() => {
