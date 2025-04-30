@@ -179,6 +179,7 @@ const NFCScanner: React.FC = () => {
       validatePair(barcodeRef.current, tag);
     }
   }, [sessionId]);
+  
   return (
     <div className="w-full max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-8 transition-all duration-300 transform hover:shadow-lg">
       <div className="text-center mb-8">
