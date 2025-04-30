@@ -130,12 +130,10 @@ export const useBarcodeReader = (
           const html5QrcodeScanner = new Html5Qrcode(scannerId);
           scannerInstance.current = html5QrcodeScanner;
           
-          // Adjust qrbox size based on device type
           const isOnMobile = isMobile();
           const isOnIOS = isIOS();
           
           const getQrboxSize = () => {
-            // Get parent element dimensions if available
             let parentWidth = 250;
             let parentHeight = 250;
             
@@ -146,16 +144,12 @@ export const useBarcodeReader = (
             
             const minDimension = Math.min(parentWidth, parentHeight);
             
-            // iOS-specific sizing
             if (isOnIOS) {
-              // iOS needs a larger scanning area for better recognition
               return Math.max(200, Math.min(minDimension * 0.85, 300));
             } 
-            // Other mobile devices
             else if (isOnMobile) {
               return Math.max(150, Math.min(minDimension * 0.75, 250));
             } 
-            // Desktop
             else {
               return Math.min(minDimension * 0.8, 300);
             }
@@ -164,13 +158,11 @@ export const useBarcodeReader = (
           const boxSize = getQrboxSize();
           console.log("Using QR box size:", boxSize, "Mobile:", isOnMobile, "iOS:", isOnIOS);
           
-          // Configure scanner with device-specific settings
           const config = {
-            fps: isOnIOS ? 20 : 10, // Higher FPS can help on iOS
+            fps: isOnIOS ? 20 : 10,
             qrbox: { width: boxSize, height: boxSize },
             aspectRatio: isOnMobile ? window.innerWidth / window.innerHeight : 1,
             disableFlip: false,
-            // Add video constraints here for iOS
             ...(isOnIOS && {
               videoConstraints: {
                 width: { min: 1280, ideal: 1920 },
@@ -179,7 +171,7 @@ export const useBarcodeReader = (
               }
             }),
             experimentalFeatures: {
-              useBarCodeDetectorIfSupported: !isOnIOS // Sometimes better to disable this on iOS
+              useBarCodeDetectorIfSupported: !isOnIOS
             },
             formatsToSupport: [
               // Prioritize QR_CODE for iOS
@@ -207,13 +199,9 @@ export const useBarcodeReader = (
           
           if (scannerActive && isMounted && !isScannerRunning.current) {
             try {
-              // Simplified camera constraints - html5-qrcode expects only one key
-              // The library only accepts one key in the cameraIdOrConfig object
               const cameraConstraints = {
                 facingMode: "environment"
               };
-              
-              // We'll apply advanced constraints in the config object instead
               
               await html5QrcodeScanner.start(
                 cameraConstraints,
@@ -225,10 +213,6 @@ export const useBarcodeReader = (
                   if (decodedResult.result.format) {
                     symbology = decodedResult.result.format.toString();
                   }
-                  
-                  console.log("Detected barcode format:", symbology);
-                  console.log("Barcode data:", decodedText);
-                  
                   const detection: CodeDetection = {
                     data: decodedText,
                     symbology: symbology
@@ -261,7 +245,6 @@ export const useBarcodeReader = (
                   });
                 },
                 (errorMessage) => {
-                  // Filter normal scanning errors - these are expected during normal operation
                   if (!errorMessage.includes("No barcode or QR code detected") && 
                       !errorMessage.includes("No MultiFormat Readers were able to detect") &&
                       !errorMessage.includes("No barcode found")) {
@@ -295,7 +278,6 @@ export const useBarcodeReader = (
         }
       };
 
-      // Use longer initialization delay for iOS
       const initDelay = isIOS() ? 800 : 500;
       initTimer = setTimeout(() => {
         initScanner();

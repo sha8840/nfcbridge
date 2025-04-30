@@ -1,18 +1,17 @@
-// NFCVerificationDemo - Clear toasts, logs, and abort previous NFC scans on reset
-
 import React, { useEffect, useState, useRef } from "react";
 import { message } from "antd";
 import ScanResult from "./ScanResult";
 import BarcodeScanner from "./barode-scanner/BarcodeScanner";
 import Stepper from "./Stepper";
 import { generateSessionId, createCustomScheme } from "../utils/nfcHelpers";
+import { RefreshCw, XCircle } from "lucide-react";
 
 const NFCScanner: React.FC = () => {
   const [sessionId, setSessionId] = useState<string>("");
   const [barcodeData, setBarcodeData] = useState<string | null>(null);
   const [tagData, setTagData] = useState<string | null>(null);
   const [status, setStatus] = useState<
-    "idle" | "scanning" | "success" | "error"
+    "idle" | "scanning" | "success" | "error" | "invalid"
   >("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -106,7 +105,6 @@ const NFCScanner: React.FC = () => {
     addLog("🔍 Starting NFC scan…");
     setStatus("scanning");
 
-    // abort any previous
     abortNfcScan();
     const controller = new AbortController();
     scanAbortController.current = controller;
@@ -151,13 +149,13 @@ const NFCScanner: React.FC = () => {
     } else {
       message.error("Validation failed: Tag does not match barcode");
       setErrorMessage("Validation failed: Tag does not match barcode");
-      setStatus("error");
+      setStatus("invalid");
     }
 
     setCurrentStep(3);
     setTimeout(() => handleReset(), 5000);
     if (supportWebNfc()) {
-      localStorage.clear();
+      localStorage.removeItem("barcode");
     }
   };
 
@@ -208,10 +206,10 @@ const NFCScanner: React.FC = () => {
       setCurrentStep(2);
       const barcode = localStorage.getItem("barcode") || null;
       if (barcode) {
-        setBarcodeData(barcode)
-        validatePair(barcode, tag)
+        setBarcodeData(barcode);
+        validatePair(barcode, tag);
       } else {
-        setStatus("error")
+        setStatus("error");
         setErrorMessage("No barcode Data available");
       }
     }
@@ -239,13 +237,35 @@ const NFCScanner: React.FC = () => {
       {status === "success" && tagData && (
         <ScanResult tagData={tagData} onReset={handleReset} />
       )}
+      {status === "invalid" && (
+        <>
+          <div className="mb-6 animate-fadeIn">
+            <div className="flex items-center justify-center mb-4">
+              <XCircle className="text-red-700 h-12 w-12" />
+            </div>
+
+            <h3 className="text-lg font-medium text-gray-800 mb-2 text-center">
+              Box & Tag Mismatch
+            </h3>
+
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={handleReset}
+                className="flex items-center px-4 py-2 text-blue-600 font-medium hover:text-blue-800 transition-colors"
+              >
+                <RefreshCw className="h-4 w-4 mr-1" />
+                Scan Another Tag
+              </button>
+            </div>
+          </div>
+        </>
+      )}
       {status === "error" && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-600">{errorMessage}</p>
         </div>
       )}
-      {sessionId.substring(0, 8)}
-      <div
+      {/* <div
         style={{
           marginTop: 20,
           maxHeight: 160,
@@ -259,7 +279,7 @@ const NFCScanner: React.FC = () => {
         {logs.map((line, i) => (
           <div key={i}>{line}</div>
         ))}
-      </div>
+      </div> */}
     </div>
   );
 };
