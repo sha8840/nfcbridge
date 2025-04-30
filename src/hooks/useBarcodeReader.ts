@@ -107,14 +107,15 @@ export const useBarcodeReader = (
           console.debug("Already in transition, skipping scanner init");
           return;
         }
-        async function getBackCameraId(): Promise<string> {
-          await navigator.mediaDevices.getUserMedia({ video: true });
-          const devices = await navigator.mediaDevices.enumerateDevices();
-          const cams = devices.filter((d) => d.kind === "videoinput");
-          const back = cams.find((d) => /back|rear|environment/i.test(d.label));
-          return (back ?? cams[cams.length - 1]).deviceId;
+        const cams = await Html5Qrcode.getCameras();
+        if (!cams || cams.length === 0) {
+          throw new Error("No cameras found");
         }
-        const backCameraId = await getBackCameraId();
+
+        // 2) pick the “back” one or fallback
+        const backCam = cams.find(c => /back|rear|environment/i.test(c.label));
+        const cameraId = (backCam || cams[cams.length-1]).id;
+
 
         try {
           isTransitioning.current = true;
@@ -210,12 +211,8 @@ export const useBarcodeReader = (
 
           if (scannerActive && isMounted && !isScannerRunning.current) {
             try {
-              const cameraConstraints = {
-                deviceId: { exact: backCameraId },
-                // facingMode: "environment"
-              };
               await html5QrcodeScanner.start(
-                cameraConstraints,
+                cameraId,
                 config,
                 (decodedText, decodedResult) => {
                   if (!isMounted) return;
