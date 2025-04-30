@@ -208,7 +208,7 @@ const NFCScanner: React.FC = () => {
         <ScanResult tagData={tagData} onReset={handleReset} />
       )}
 
-      <div
+      {/* <div
         style={{
           marginTop: 20,
           maxHeight: 160,
@@ -222,7 +222,7 @@ const NFCScanner: React.FC = () => {
         {logs.map((line, i) => (
           <div key={i}>{line}</div>
         ))}
-      </div>
+      </div> */}
     </div>
   );
 };
