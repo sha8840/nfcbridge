@@ -6,7 +6,6 @@ import ScanResult from "./ScanResult";
 import BarcodeScanner from "./barode-scanner/BarcodeScanner";
 import Stepper from "./Stepper";
 import { generateSessionId, createCustomScheme } from "../utils/nfcHelpers";
-import { Divide } from "lucide-react";
 
 const NFCScanner: React.FC = () => {
   const [sessionId, setSessionId] = useState<string>("");
