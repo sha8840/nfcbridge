@@ -18,7 +18,6 @@
 //   const [currentStep, setCurrentStep] = useState<number>(0);
 //   const [oldSessionId, setOldSessionId] = useState<string | null>(null);
 
-
 //   useEffect(() => {
 //     setSessionId(localStorage.getItem("sessionId") || "");
 //     setOldSessionId(localStorage.getItem("sessionId") || "");
@@ -180,7 +179,7 @@ const NFCScanner: React.FC = () => {
 
   useEffect(() => {
     addLog(`🔒 isSecureContext: ${window.isSecureContext}`);
-    addLog(`🧐 'NDEFReader' in window? ${'NDEFReader' in window}`);
+    addLog(`🧐 'NDEFReader' in window? ${"NDEFReader" in window}`);
     const oldSessionId = localStorage.getItem("sessionId");
     if (oldSessionId) {
       setSessionId(oldSessionId);
@@ -240,10 +239,10 @@ const NFCScanner: React.FC = () => {
 
       ndef.onreading = (event: any) => {
         addLog("📥 onreading event received");
-      
+
         const texts: string[] = [];
         const binaries: string[] = [];
-      
+
         for (const record of event.message.records) {
           switch (record.recordType) {
             case "text": {
@@ -271,7 +270,7 @@ const NFCScanner: React.FC = () => {
             }
           }
         }
-      
+
         const combined = texts.join("\n");
         setTagData(combined);
         setStatus("success");
@@ -287,6 +286,7 @@ const NFCScanner: React.FC = () => {
   const handleBarcode = (results: any) => {
     if (results && currentStep === 1) {
       setBarcodeData(results);
+      addLog(`📥 Barcode data: ${results}`);
       setCurrentStep(2);
       setStatus("success");
       setTimeout(() => {
