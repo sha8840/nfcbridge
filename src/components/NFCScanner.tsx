@@ -1,4 +1,4 @@
-// NFCVerificationDemo - Added NFC scan abort logic to avoid stale sessions
+// NFCVerificationDemo - Clear toasts, logs, and abort previous NFC scans on reset
 
 import React, { useEffect, useState, useRef } from "react";
 import { message } from "antd";
@@ -15,11 +15,39 @@ const NFCScanner: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [logs, setLogs] = useState<string[]>([]);
+  const [barcodeActive, setBarcodeActive] = useState<boolean>(false);
+  const [nfcGesture, setNfcGesture] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'nfc' as PermissionName })
+        .then((status) => {
+          setNfcGesture(status.state === 'granted');
+          status.onchange = () => setNfcGesture(status.state === 'granted');
+        })
+        .catch(() => {
+          setNfcGesture(false);
+        });
+    }
+  }, []);
   const barcodeRef = useRef<string>("");
-  const nfcControllerRef = useRef<AbortController | null>(null);
+  const scanAbortController = useRef<AbortController | null>(null);
 
   const supportWebNfc = () => typeof (window as any).NDEFReader === "function";
   const addLog = (msg: string) => setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
+
+  const resetLogsAndToasts = () => {
+    message.destroy();
+    setLogs([]);
+  };
+
+  const abortNfcScan = () => {
+    if (scanAbortController.current) {
+      scanAbortController.current.abort();
+      scanAbortController.current = null;
+      addLog("🛑 Aborted previous NFC scan");
+    }
+  };
 
   useEffect(() => {
     if (!window.isSecureContext) {
@@ -27,44 +55,36 @@ const NFCScanner: React.FC = () => {
       setErrorMessage("This feature requires HTTPS");
       return;
     }
+
+    // initialize session
     const existingSession = localStorage.getItem("sessionId");
     const newSession = existingSession || generateSessionId();
     setSessionId(newSession);
     localStorage.setItem("sessionId", newSession);
 
+    // set demo pairs
     const demoPairs = {
       "8901435003005": "5faf2ecb9e581b",
-      "4987176270337": "5fd1f9aae1578b",
+      "4987176270337": "5fd1f9aae1578b"
     };
     localStorage.setItem("pairs", JSON.stringify(demoPairs));
 
-    resetLogsAndToasts();
-    startBarcodeScan();
-    // abort any ongoing NFC on unmount
-    return () => {
-      if (nfcControllerRef.current) {
-        nfcControllerRef.current.abort();
-      }
-    };
+    // start fresh
+    handleReset();
   }, []);
-
-  const resetLogsAndToasts = () => {
-    message.destroy();
-    setLogs([]);
-  };
 
   const startBarcodeScan = () => {
     resetLogsAndToasts();
+    abortNfcScan();
     addLog("🔄 Starting barcode scan");
     setStatus("scanning");
     setCurrentStep(0);
-    setBarcodeActive(true);
+    setTimeout(() => setBarcodeActive(true), 100);
   };
 
-  const [barcodeActive, setBarcodeActive] = useState<boolean>(false);
-
   const handleBarcode = (result: string) => {
-    message.destroy();
+    resetLogsAndToasts();
+    abortNfcScan();
     addLog(`📦 Barcode scanned: ${result}`);
     barcodeRef.current = result;
     setBarcodeData(result);
@@ -75,18 +95,16 @@ const NFCScanner: React.FC = () => {
   };
 
   const startNfcScan = async (barcode: string) => {
-    // abort previous scan if any
-    if (nfcControllerRef.current) {
-      nfcControllerRef.current.abort();
-    }
-    const controller = new AbortController();
-    nfcControllerRef.current = controller;
-
-    setStatus("scanning");
     addLog("🔍 Starting NFC scan…");
+    setStatus("scanning");
+
+    // abort any previous
+    abortNfcScan();
+    const controller = new AbortController();
+    scanAbortController.current = controller;
 
     if (!supportWebNfc()) {
-      message.destroy();
+      resetLogsAndToasts();
       addLog("⚠️ Web NFC not supported, redirecting to app…");
       window.location.href = createCustomScheme(sessionId);
       return;
@@ -96,7 +114,9 @@ const NFCScanner: React.FC = () => {
       const ndef = new (window as any).NDEFReader();
       await ndef.scan({ signal: controller.signal });
 
-      ndef.onreadingerror = () => handleError("Couldn’t read NFC tag. Please try again.");
+      ndef.onreadingerror = () => {
+        handleError("Couldn’t read NFC tag. Please try again.");
+      };
 
       ndef.onreading = (event: any) => {
         const uidHex = event.serialNumber.replace(/:/g, "");
@@ -106,14 +126,14 @@ const NFCScanner: React.FC = () => {
         validatePair(barcode, uidHex);
       };
     } catch (err: any) {
-      // if aborted, ignore
-      if (err.name === 'AbortError') return;
-      handleError(err.message || "Failed to start NFC scan");
+      if (err.name !== 'AbortError') {
+        handleError(err.message || "Failed to start NFC scan");
+      }
     }
   };
 
   const validatePair = (barcode: string, tag: string) => {
-    message.destroy();
+    resetLogsAndToasts();
     const pairs = JSON.parse(localStorage.getItem("pairs") || "{}");
     setCurrentStep(2);
 
@@ -127,22 +147,16 @@ const NFCScanner: React.FC = () => {
     }
 
     setCurrentStep(3);
-    setTimeout(() => {
-      resetLogsAndToasts();
-      handleReset();
-    }, 5000);
+    setTimeout(() => handleReset(), 5000);
   };
 
   const handleError = (msg: string) => {
-    message.destroy();
+    resetLogsAndToasts();
     addLog(`❌ Error: ${msg}`);
     setStatus("error");
     setErrorMessage(msg);
     message.error(msg);
-    setTimeout(() => {
-      resetLogsAndToasts();
-      handleReset();
-    }, 5000);
+    setTimeout(() => handleReset(), 5000);
   };
 
   const handleReset = () => {
@@ -152,16 +166,23 @@ const NFCScanner: React.FC = () => {
     setErrorMessage("");
     setCurrentStep(0);
     barcodeRef.current = "";
-
-    if (nfcControllerRef.current) {
-      nfcControllerRef.current.abort();
-      nfcControllerRef.current = null;
-    }
-
+    abortNfcScan();
     const freshSession = generateSessionId();
     setSessionId(freshSession);
     localStorage.setItem("sessionId", freshSession);
     startBarcodeScan();
+  };
+
+  const takeNFC = async () => {
+    try {
+      const ndef = new (window as any).NDEFReader();
+      await ndef.scan();
+      setNfcGesture(true);
+      addLog("👋 NFC permission granted");
+    } catch (err) {
+      addLog("❌ NFC permission denied or scan aborted");
+      setNfcGesture(false);
+    }
   };
 
   // Handle iOS callback
@@ -171,7 +192,7 @@ const NFCScanner: React.FC = () => {
     const td = params.get("tag_data");
 
     if (sid === sessionId && td) {
-      message.destroy();
+      resetLogsAndToasts();
       addLog("📥 Received callback from app");
       const tag = decodeURIComponent(td);
       setTagData(tag);
@@ -179,52 +200,40 @@ const NFCScanner: React.FC = () => {
       validatePair(barcodeRef.current, tag);
     }
   }, [sessionId]);
-  
+
   return (
-    <div className="w-full max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-8 transition-all duration-300 transform hover:shadow-lg">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">NFC Scanner</h2>
-        <p className="text-gray-600">
-          Scan a box barcode and its NFC tag to verify pairing.
-        </p>
+    !nfcGesture && supportWebNfc() ? (
+      <div className="mb-4 text-center">
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+          onClick={takeNFC}
+        >
+          Provide NFC Permission
+        </button>
       </div>
-
-      {status === "error" && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-600">{errorMessage}</p>
+    ) : (
+      <div className="w-full max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-8 transition-all duration-300 transform hover:shadow-lg">
+        <Stepper currentStep={currentStep} />
+        {barcodeActive && (
+          <BarcodeScanner
+            scannerActive={barcodeActive}
+            onBarcodeDetected={handleBarcode}
+            setScannerActive={setBarcodeActive}
+          />
+        )}
+        {status === "success" && tagData && (
+          <ScanResult tagData={tagData} onReset={handleReset} />
+        )}
+        {status === "error" && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600">{errorMessage}</p>
+          </div>
+        )}
+        <div style={{ marginTop: 20, maxHeight: 160, overflowY: "auto", background: "rgba(0,0,0,0.8)", color: "#0f0", fontFamily: "monospace", fontSize: 12 }}>
+          {logs.map((line, i) => <div key={i}>{line}</div>)}
         </div>
-      )}
-
-      <Stepper currentStep={currentStep} />
-
-      {barcodeActive && (
-        <BarcodeScanner
-          scannerActive={barcodeActive}
-          onBarcodeDetected={handleBarcode}
-          setScannerActive={setBarcodeActive}
-        />
-      )}
-
-      {status === "success" && tagData && barcodeData && (
-        <ScanResult tagData={tagData} onReset={handleReset} />
-      )}
-
-      {/* <div
-        style={{
-          marginTop: 20,
-          maxHeight: 160,
-          overflowY: "auto",
-          background: "rgba(0,0,0,0.8)",
-          color: "#0f0",
-          fontFamily: "monospace",
-          fontSize: 12,
-        }}
-      >
-        {logs.map((line, i) => (
-          <div key={i}>{line}</div>
-        ))}
-      </div> */}
-    </div>
+      </div>
+    )
   );
 };
 
