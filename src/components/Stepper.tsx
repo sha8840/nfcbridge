@@ -1,37 +1,32 @@
+// Stepper.tsx
 import { Steps } from "antd";
+import React from "react";
 
 const Stepper: React.FC<{ currentStep: number }> = ({ currentStep }) => {
-  const description = [
+  const descriptions = [
+    "Scan the box barcode.",
     "Scan the NFC tag with your device.",
-    "Now Scan the barcode attached to the device.",
-    "Data validated successfully. You can now use the device.",
-    "Validating the data from the NFC tag and the barcode.",
-    "Validate the recieved data.",
+    "Validating the barcode and NFC tag data.",
+    "Process complete.",
   ];
+
+  const items = [
+    { title: "Scan Barcode", description: descriptions[0] },
+    { title: "Scan NFC", description: descriptions[1] },
+    {
+      title: currentStep === 2 ? "Validating..." : "Validation",
+      description: descriptions[2],
+    },
+    { title: "Done", description: descriptions[3] },
+  ];
+
   return (
     <Steps
       className="mb-6"
       direction="vertical"
       size="small"
       current={currentStep}
-      items={[
-        {
-          title: "Scan NFC",
-          description: description[0],
-        },
-        {
-          title: "Scan Barcode",
-          description: description[1],
-        },
-        {
-          title: currentStep == 2 ? "Validating..." : "Validation",
-          description: currentStep == 2 ? description[3] : description[4],
-        },
-        {
-          title: "Device Ready",
-          description: description[2],
-        },
-      ]}
+      items={items}
     />
   );
 };

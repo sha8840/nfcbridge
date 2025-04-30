@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   server: {
-    host: "0.0.0.0",
+    allowedHosts: ["d0d0-103-221-73-62.ngrok-free.app"],
     port: 5173,
   },
 });

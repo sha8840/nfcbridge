@@ -1,4 +1,3 @@
-// useBarcodeReader.ts
 import { useEffect, useState, useRef, RefObject } from "react";
 import { 
   Html5Qrcode, 
@@ -130,12 +129,10 @@ export const useBarcodeReader = (
           const html5QrcodeScanner = new Html5Qrcode(scannerId);
           scannerInstance.current = html5QrcodeScanner;
           
-          // Adjust qrbox size based on device type
           const isOnMobile = isMobile();
           const isOnIOS = isIOS();
           
           const getQrboxSize = () => {
-            // Get parent element dimensions if available
             let parentWidth = 250;
             let parentHeight = 250;
             
@@ -146,16 +143,12 @@ export const useBarcodeReader = (
             
             const minDimension = Math.min(parentWidth, parentHeight);
             
-            // iOS-specific sizing
             if (isOnIOS) {
-              // iOS needs a larger scanning area for better recognition
               return Math.max(200, Math.min(minDimension * 0.85, 300));
             } 
-            // Other mobile devices
             else if (isOnMobile) {
               return Math.max(150, Math.min(minDimension * 0.75, 250));
             } 
-            // Desktop
             else {
               return Math.min(minDimension * 0.8, 300);
             }
@@ -173,9 +166,8 @@ export const useBarcodeReader = (
             // Add video constraints here for iOS
             ...(isOnIOS && {
               videoConstraints: {
-                width: { min: 1280, ideal: 1920 },
-                height: { min: 720, ideal: 1080 },
-                facingMode: "environment"
+                width: { min: 1280, exact: 1920 },
+                height: { min: 720, exact: 1080 },
               }
             }),
             experimentalFeatures: {
