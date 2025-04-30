@@ -242,6 +242,7 @@ const NFCScanner: React.FC = () => {
 
         const texts: string[] = [];
         const binaries: string[] = [];
+        const uidHex = event.serialNumber.replace(/:/g, "");
 
         for (const record of event.message.records) {
           switch (record.recordType) {
@@ -271,7 +272,7 @@ const NFCScanner: React.FC = () => {
           }
         }
 
-        const combined = texts.join("\n");
+        const combined = `UID: ${uidHex}\n${texts.join("\n")}`;
         setTagData(combined);
         setStatus("success");
         setCurrentStep(1);
