@@ -44,15 +44,15 @@ const ScanResult: React.FC<ScanResultProps> = ({ tagData, onReset }) => {
         </button>
       </div>
       
-      <div className="mt-6 flex justify-center">
-        <button 
+      {/* <div className="mt-6 flex justify-center"> */}
+        {/* <button 
           onClick={onReset}
           className="flex items-center px-4 py-2 text-blue-600 font-medium hover:text-blue-800 transition-colors"
         >
           <RefreshCw className="h-4 w-4 mr-1" />
           Scan Another Tag
-        </button>
-      </div>
+        </button> */}
+      {/* </div> */}
     </div>
   );
 };

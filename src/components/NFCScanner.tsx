@@ -247,16 +247,16 @@ const NFCScanner: React.FC = () => {
             <h3 className="text-lg font-medium text-gray-800 mb-2 text-center">
               Box & Tag Mismatch
             </h3>
-
-            <div className="mt-6 flex justify-center">
-              <button
+            {/* <div className="mt-6 flex justify-center"> */}
+              {/* Taking */}
+              {/* <button
                 onClick={handleReset}
                 className="flex items-center px-4 py-2 text-blue-600 font-medium hover:text-blue-800 transition-colors"
               >
                 <RefreshCw className="h-4 w-4 mr-1" />
                 Scan Another Tag
-              </button>
-            </div>
+              </button> */}
+            {/* </div>  */}
           </div>
         </>
       )}
