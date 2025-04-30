@@ -92,7 +92,6 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
                 Cancel
               </button>
               
-              {/* Add restart button for iOS devices */}
               {isIOS && (
                 <button className="restart-button" onClick={handleRestart}>
                   Restart Scanner
