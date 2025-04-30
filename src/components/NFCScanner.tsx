@@ -156,6 +156,9 @@ const NFCScanner: React.FC = () => {
 
     setCurrentStep(3);
     setTimeout(() => handleReset(), 5000);
+    if (supportWebNfc()) {
+      localStorage.clear();
+    }
   };
 
   const handleError = (msg: string) => {
@@ -177,7 +180,6 @@ const NFCScanner: React.FC = () => {
     abortNfcScan();
     startBarcodeScan();
     setCallBack(false);
-    // localStorage.removeItem("barcode")
   };
 
   const takeNFC = async () => {
@@ -233,11 +235,6 @@ const NFCScanner: React.FC = () => {
           onBarcodeDetected={handleBarcode}
           setScannerActive={setBarcodeActive}
         />
-      )}
-      {isCallback && (
-        <div>
-          {tagData} {barcodeData}
-        </div>
       )}
       {status === "success" && tagData && (
         <ScanResult tagData={tagData} onReset={handleReset} />
